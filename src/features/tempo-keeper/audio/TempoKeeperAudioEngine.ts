@@ -1,12 +1,12 @@
 import {
-  CLICK_FREQUENCY_HZ,
-  DOWNBEAT_CLICK_ATTACK_GAIN,
   CLICK_ATTACK_SECONDS,
   CLICK_DECAY_SECONDS,
   CLICK_DURATION_SECONDS,
+  CLICK_FREQUENCY_HZ,
   CLICK_SILENT_GAIN,
   DEFAULT_BEATS_PER_BAR,
   DEFAULT_BPM,
+  DOWNBEAT_CLICK_ATTACK_GAIN,
   DOWNBEAT_INDEX,
   LOOKAHEAD_MILLISECONDS,
   REGULAR_CLICK_ATTACK_GAIN,
@@ -14,7 +14,7 @@ import {
   SECONDS_PER_MINUTE,
 } from "../constants";
 
-type MetronomeAudioEngineOptions = {
+type TempoKeeperAudioEngineOptions = {
   lookaheadMilliseconds?: number;
   scheduleAheadSeconds?: number;
   onBeatScheduled?: (beatIndex: number) => void;
@@ -29,7 +29,7 @@ const resolveAudioContextConstructor = () => {
   );
 };
 
-export class MetronomeAudioEngine {
+export class TempoKeeperAudioEngine {
   private audioContext: AudioContext | null = null;
   private schedulerIntervalId: ReturnType<typeof setInterval> | null = null;
   private scheduledOscillators = new Set<OscillatorNode>();
@@ -43,7 +43,7 @@ export class MetronomeAudioEngine {
   private currentBeatIndex = DOWNBEAT_INDEX;
   private nextBeatTimeSeconds = 0;
 
-  constructor(options: MetronomeAudioEngineOptions = {}) {
+  constructor(options: TempoKeeperAudioEngineOptions = {}) {
     this.lookaheadMilliseconds =
       options.lookaheadMilliseconds ?? LOOKAHEAD_MILLISECONDS;
     this.scheduleAheadSeconds =
@@ -190,7 +190,7 @@ export class MetronomeAudioEngine {
       } catch (error) {
         if (process.env.NODE_ENV !== "production") {
           console.debug(
-            "MetronomeAudioEngine: oscillator stop skipped (already ended or not stoppable).",
+            "TempoKeeperAudioEngine: oscillator stop skipped (already ended or not stoppable).",
             error,
           );
         }

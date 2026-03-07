@@ -7,14 +7,14 @@ import {
   MAX_BPM,
   MIN_BPM,
 } from "../constants";
-import { useMetronome } from "../hooks/useMetronome";
+import { useTempoKeeper } from "../hooks/useTempoKeeper";
 
 const TEMPO_COLOR_MIN_BPM = 60;
 const TEMPO_COLOR_MAX_BPM = 210;
 const HSL_RED_HUE = 0;
 const HSL_GREEN_HUE = 120;
 
-export default function Metronome() {
+export default function TempoKeeper() {
   const {
     tempoBpm,
     beatsPerBar,
@@ -23,7 +23,7 @@ export default function Metronome() {
     setTempoBpm,
     setBeatsPerBar,
     togglePlayback,
-  } = useMetronome();
+  } = useTempoKeeper();
   const [tempoInputValue, setTempoInputValue] = useState(String(tempoBpm));
 
   useEffect(() => {
@@ -53,7 +53,7 @@ export default function Metronome() {
   const tempoProgress = Math.min(
     Math.max(
       (tempoBpm - TEMPO_COLOR_MIN_BPM) /
-        (TEMPO_COLOR_MAX_BPM - TEMPO_COLOR_MIN_BPM),
+      (TEMPO_COLOR_MAX_BPM - TEMPO_COLOR_MIN_BPM),
       0,
     ),
     1,
@@ -69,20 +69,19 @@ export default function Metronome() {
     return (
       <div
         key={index}
-        className={`h-10 w-10 rounded-full ${
-          isActive
-            ? isDownbeat
-              ? "bg-red-500"
-              : "bg-green-500"
-            : "bg-gray-500"
-        }`}
+        className={`h-10 w-10 rounded-full ${isActive
+          ? isDownbeat
+            ? "bg-red-500"
+            : "bg-green-500"
+          : "bg-gray-500"
+          }`}
       />
     );
   });
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center mx-9">
-      <h1 className="mb-3 text-center text-3xl font-bold">Metronome</h1>
+      <h1 className="mb-3 text-center text-3xl font-bold">Tempo Keeper</h1>
 
       <div className="flex w-full flex-col rounded border p-6">
         <div className="flex flex-col items-center justify-center gap-3">
@@ -161,11 +160,10 @@ export default function Metronome() {
             <button
               type="button"
               onClick={togglePlayback}
-              className={`rounded-full border px-4.5 py-1 text-xl ${
-                isPlaybackRunning
-                  ? "border-red-500 text-red-500"
-                  : "border-green-500 text-green-500"
-              }`}
+              className={`rounded-full border px-4.5 py-1 text-xl ${isPlaybackRunning
+                ? "border-red-500 text-red-500"
+                : "border-green-500 text-green-500"
+                }`}
             >
               {isPlaybackRunning ? "Stop" : "Start"}
             </button>

@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Metronome",
-  description: "Metronome",
+  title: "Tempo Keeper",
+  description: "Tempo Keeper",
 };
 
 export default function RootLayout({

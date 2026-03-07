@@ -1,5 +1,5 @@
-import { Metronome } from "../features/metronome";
+import { TempoKeeper } from "../features/tempo-keeper";
 
 export default function Home() {
-  return <Metronome />;
+  return <TempoKeeper />;
 }

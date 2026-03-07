@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { MetronomeAudioEngine } from "../audio/MetronomeAudioEngine";
+import { TempoKeeperAudioEngine } from "../audio/TempoKeeperAudioEngine";
 import {
   DEFAULT_BEATS_PER_BAR,
   DEFAULT_BPM,
@@ -9,16 +9,16 @@ import {
   MIN_BPM,
 } from "../constants";
 
-export const useMetronome = () => {
+export const useTempoKeeper = () => {
   const [tempoBpm, setTempoBpmState] = useState(DEFAULT_BPM);
   const [beatsPerBar, setBeatsPerBar] = useState(DEFAULT_BEATS_PER_BAR);
   const [isPlaybackRunning, setIsPlaybackRunning] = useState(false);
   const [activeBeatIndex, setActiveBeatIndex] = useState(DOWNBEAT_INDEX);
 
-  const audioEngineRef = useRef<MetronomeAudioEngine | null>(null);
+  const audioEngineRef = useRef<TempoKeeperAudioEngine | null>(null);
 
   useEffect(() => {
-    const audioEngine = new MetronomeAudioEngine({
+    const audioEngine = new TempoKeeperAudioEngine({
       onBeatScheduled: (scheduledBeatIndex) => {
         setActiveBeatIndex(scheduledBeatIndex);
       },
