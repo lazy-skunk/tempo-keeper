@@ -11,7 +11,6 @@ import {
   LOOKAHEAD_MILLISECONDS,
   REGULAR_CLICK_ATTACK_GAIN,
   SCHEDULE_AHEAD_SECONDS,
-  SECONDS_PER_MINUTE,
 } from "../constants";
 
 type TempoKeeperAudioEngineOptions = {
@@ -132,7 +131,7 @@ export class TempoKeeperAudioEngine {
       this.scheduleClickSound(this.nextBeatTimeSeconds, beatIndexToSchedule);
       this.onBeatScheduled?.(beatIndexToSchedule);
 
-      const secondsPerBeat = SECONDS_PER_MINUTE / this.tempoBpm;
+      const secondsPerBeat = 60 / this.tempoBpm;
       this.nextBeatTimeSeconds += secondsPerBeat;
       this.currentBeatIndex = (beatIndexToSchedule + 1) % this.beatsPerBar;
     }

@@ -12,7 +12,6 @@ export const BEATS_PER_BAR_OPTIONS = [
   6,
 ] as const;
 
-export const SECONDS_PER_MINUTE = 60;
 export const DOWNBEAT_INDEX = 0;
 
 export const LOOKAHEAD_MILLISECONDS = 25;
