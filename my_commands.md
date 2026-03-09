@@ -13,9 +13,3 @@ docker-compose down --rmi all --volumes
 ```
 npx create-next-app@latest
 ```
-
-## Generate tones
-
-```
-node scripts/generate-tones.mjs
-```
