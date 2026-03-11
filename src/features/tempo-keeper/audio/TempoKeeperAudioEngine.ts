@@ -1,23 +1,14 @@
-import {
-  CLICK_ATTACK_SECONDS,
-  CLICK_DECAY_SECONDS,
-  CLICK_DURATION_SECONDS,
-  CLICK_FREQUENCY_HZ,
-  CLICK_SILENT_GAIN,
-  DEFAULT_BEATS_PER_BAR,
-  DEFAULT_BPM,
-  DOWNBEAT_CLICK_ATTACK_GAIN,
-  DOWNBEAT_INDEX,
-  LOOKAHEAD_MILLISECONDS,
-  REGULAR_CLICK_ATTACK_GAIN,
-  SCHEDULE_AHEAD_SECONDS,
-} from "../constants";
+import { DOWNBEAT_INDEX } from "../constants";
 
-type TempoKeeperAudioEngineOptions = {
-  lookaheadMilliseconds?: number;
-  scheduleAheadSeconds?: number;
-  onBeatScheduled?: (beatIndex: number) => void;
-};
+const CLICK_FREQUENCY_HZ = 1000;
+const DOWNBEAT_CLICK_ATTACK_GAIN = 1.0;
+const REGULAR_CLICK_ATTACK_GAIN = 0.5;
+const CLICK_SILENT_GAIN = 0.0001;
+const CLICK_ATTACK_SECONDS = 0.001;
+const CLICK_DECAY_SECONDS = 0.05;
+const CLICK_STOP_BUFFER_SECONDS = 0.01;
+const CLICK_DURATION_SECONDS =
+  CLICK_ATTACK_SECONDS + CLICK_DECAY_SECONDS + CLICK_STOP_BUFFER_SECONDS;
 
 const resolveAudioContextConstructor = () => {
   return (
@@ -30,70 +21,10 @@ const resolveAudioContextConstructor = () => {
 
 export class TempoKeeperAudioEngine {
   private audioContext: AudioContext | null = null;
-  private schedulerIntervalId: ReturnType<typeof setInterval> | null = null;
   private scheduledOscillators = new Set<OscillatorNode>();
 
-  private readonly lookaheadMilliseconds: number;
-  private readonly scheduleAheadSeconds: number;
-  private readonly onBeatScheduled?: (beatIndex: number) => void;
-
-  private tempoBpm = DEFAULT_BPM;
-  private beatsPerBar = DEFAULT_BEATS_PER_BAR;
-  private currentBeatIndex = DOWNBEAT_INDEX;
-  private nextBeatTimeSeconds = 0;
-
-  constructor(options: TempoKeeperAudioEngineOptions = {}) {
-    this.lookaheadMilliseconds =
-      options.lookaheadMilliseconds ?? LOOKAHEAD_MILLISECONDS;
-    this.scheduleAheadSeconds =
-      options.scheduleAheadSeconds ?? SCHEDULE_AHEAD_SECONDS;
-    this.onBeatScheduled = options.onBeatScheduled;
-  }
-
-  public setTempoBpm(nextTempoBpm: number) {
-    this.tempoBpm = nextTempoBpm;
-  }
-
-  public setBeatsPerBar(nextBeatsPerBar: number) {
-    this.beatsPerBar = nextBeatsPerBar;
-    this.currentBeatIndex = DOWNBEAT_INDEX;
-  }
-
-  public getIsRunning() {
-    return this.schedulerIntervalId !== null;
-  }
-
-  public async start() {
-    if (this.getIsRunning()) {
-      return true;
-    }
-
-    const audioContext = await this.getOrCreateAudioContext();
-    if (!audioContext) {
-      return false;
-    }
-
-    if (audioContext.state === "suspended") {
-      await audioContext.resume();
-    }
-
-    this.currentBeatIndex = DOWNBEAT_INDEX;
-    this.nextBeatTimeSeconds = audioContext.currentTime;
-    this.schedulerIntervalId = setInterval(
-      this.schedulePendingBeats,
-      this.lookaheadMilliseconds,
-    );
-
-    return true;
-  }
-
   public stop() {
-    if (this.schedulerIntervalId) {
-      clearInterval(this.schedulerIntervalId);
-      this.schedulerIntervalId = null;
-    }
     this.stopScheduledOscillators();
-    this.currentBeatIndex = DOWNBEAT_INDEX;
   }
 
   public async dispose() {
@@ -104,8 +35,15 @@ export class TempoKeeperAudioEngine {
     }
   }
 
-  private async getOrCreateAudioContext() {
+  public getAudioContext() {
+    return this.audioContext;
+  }
+
+  public async prepare() {
     if (this.audioContext) {
+      if (this.audioContext.state === "suspended") {
+        await this.audioContext.resume();
+      }
       return this.audioContext;
     }
 
@@ -115,29 +53,14 @@ export class TempoKeeperAudioEngine {
     }
 
     this.audioContext = new AudioContextConstructor();
+    if (this.audioContext.state === "suspended") {
+      await this.audioContext.resume();
+    }
+
     return this.audioContext;
   }
 
-  private readonly schedulePendingBeats = () => {
-    if (!this.audioContext) {
-      return;
-    }
-
-    while (
-      this.nextBeatTimeSeconds <
-      this.audioContext.currentTime + this.scheduleAheadSeconds
-    ) {
-      const beatIndexToSchedule = this.currentBeatIndex;
-      this.scheduleClickSound(this.nextBeatTimeSeconds, beatIndexToSchedule);
-      this.onBeatScheduled?.(beatIndexToSchedule);
-
-      const secondsPerBeat = 60 / this.tempoBpm;
-      this.nextBeatTimeSeconds += secondsPerBeat;
-      this.currentBeatIndex = (beatIndexToSchedule + 1) % this.beatsPerBar;
-    }
-  };
-
-  private scheduleClickSound(playbackTimeSeconds: number, beatIndex: number) {
+  public scheduleClickSound(playbackTimeSeconds: number, beatIndex: number) {
     if (!this.audioContext) {
       return;
     }
@@ -162,7 +85,7 @@ export class TempoKeeperAudioEngine {
     );
     gainNode.gain.exponentialRampToValueAtTime(
       CLICK_SILENT_GAIN,
-      playbackTimeSeconds + CLICK_DECAY_SECONDS,
+      playbackTimeSeconds + CLICK_ATTACK_SECONDS + CLICK_DECAY_SECONDS,
     );
 
     oscillatorNode.connect(gainNode);

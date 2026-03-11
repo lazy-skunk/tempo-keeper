@@ -8,6 +8,8 @@ import {
   MIN_BEATS_PER_BAR,
   MIN_BPM,
 } from "../constants";
+import { TempoKeeperBeatScheduler } from "../schedulers/TempoKeeperBeatScheduler";
+import { TempoKeeperVisualScheduler } from "../schedulers/TempoKeeperVisualScheduler";
 
 export const useTempoKeeper = () => {
   const [tempoBpm, setTempoBpmState] = useState(DEFAULT_BPM);
@@ -16,20 +18,46 @@ export const useTempoKeeper = () => {
   const [activeBeatIndex, setActiveBeatIndex] = useState(DOWNBEAT_INDEX);
 
   const audioEngineRef = useRef<TempoKeeperAudioEngine | null>(null);
+  const beatSchedulerRef = useRef<TempoKeeperBeatScheduler | null>(null);
+  const visualSchedulerRef = useRef<TempoKeeperVisualScheduler | null>(null);
+
+  const clearScheduledBeatUpdates = useCallback(() => {
+    visualSchedulerRef.current?.clear();
+  }, []);
 
   useEffect(() => {
-    const audioEngine = new TempoKeeperAudioEngine({
-      onBeatScheduled: (scheduledBeatIndex) => {
-        setActiveBeatIndex(scheduledBeatIndex);
+    const audioEngine = new TempoKeeperAudioEngine();
+    const visualScheduler = new TempoKeeperVisualScheduler({
+      onBeatActivated: (beatIndex) => {
+        setActiveBeatIndex(beatIndex);
+      },
+    });
+    const beatScheduler = new TempoKeeperBeatScheduler({
+      audioEngine,
+      onBeatScheduled: (
+        scheduledBeatIndex,
+        _playbackTimeSeconds,
+        targetPerformanceTimeMilliseconds,
+      ) => {
+        visualScheduler.scheduleBeat(
+          scheduledBeatIndex,
+          targetPerformanceTimeMilliseconds,
+        );
       },
     });
     audioEngineRef.current = audioEngine;
+    beatSchedulerRef.current = beatScheduler;
+    visualSchedulerRef.current = visualScheduler;
 
     return () => {
+      clearScheduledBeatUpdates();
+      beatScheduler.dispose();
+      beatSchedulerRef.current = null;
+      visualSchedulerRef.current = null;
       void audioEngine.dispose();
       audioEngineRef.current = null;
     };
-  }, []);
+  }, [clearScheduledBeatUpdates]);
 
   const setTempoBpm = useCallback((candidateTempoBpm: number) => {
     const clampedTempoBpm = Math.min(
@@ -40,38 +68,42 @@ export const useTempoKeeper = () => {
       return;
     }
     setTempoBpmState(clampedTempoBpm);
-    audioEngineRef.current?.setTempoBpm(clampedTempoBpm);
+    beatSchedulerRef.current?.setTempoBpm(clampedTempoBpm);
   }, []);
 
-  const setBeatsPerBarCount = useCallback((candidateBeatsPerBar: number) => {
-    if (
-      !Number.isInteger(candidateBeatsPerBar) ||
-      candidateBeatsPerBar < MIN_BEATS_PER_BAR
-    ) {
-      return;
-    }
-    setBeatsPerBar(candidateBeatsPerBar);
-    setActiveBeatIndex(DOWNBEAT_INDEX);
-    audioEngineRef.current?.setBeatsPerBar(candidateBeatsPerBar);
-  }, []);
+  const setBeatsPerBarCount = useCallback(
+    (candidateBeatsPerBar: number) => {
+      if (
+        !Number.isInteger(candidateBeatsPerBar) ||
+        candidateBeatsPerBar < MIN_BEATS_PER_BAR
+      ) {
+        return;
+      }
+      setBeatsPerBar(candidateBeatsPerBar);
+      clearScheduledBeatUpdates();
+      setActiveBeatIndex(DOWNBEAT_INDEX);
+      beatSchedulerRef.current?.setBeatsPerBar(candidateBeatsPerBar);
+    },
+    [clearScheduledBeatUpdates],
+  );
 
   const startPlayback = useCallback(async () => {
     if (isPlaybackRunning) {
       return;
     }
-    const didStartPlayback = await audioEngineRef.current?.start();
+    const didStartPlayback = await beatSchedulerRef.current?.start();
     if (!didStartPlayback) {
       return;
     }
     setIsPlaybackRunning(true);
-    setActiveBeatIndex(DOWNBEAT_INDEX);
   }, [isPlaybackRunning]);
 
   const stopPlayback = useCallback(() => {
-    audioEngineRef.current?.stop();
+    beatSchedulerRef.current?.stop();
+    clearScheduledBeatUpdates();
     setIsPlaybackRunning(false);
     setActiveBeatIndex(DOWNBEAT_INDEX);
-  }, []);
+  }, [clearScheduledBeatUpdates]);
 
   const togglePlayback = useCallback(() => {
     if (isPlaybackRunning) {
@@ -82,11 +114,11 @@ export const useTempoKeeper = () => {
   }, [isPlaybackRunning, startPlayback, stopPlayback]);
 
   useEffect(() => {
-    audioEngineRef.current?.setTempoBpm(tempoBpm);
+    beatSchedulerRef.current?.setTempoBpm(tempoBpm);
   }, [tempoBpm]);
 
   useEffect(() => {
-    audioEngineRef.current?.setBeatsPerBar(beatsPerBar);
+    beatSchedulerRef.current?.setBeatsPerBar(beatsPerBar);
   }, [beatsPerBar]);
 
   return {
