@@ -1,6 +1,8 @@
 {
-	"recommendations": [
-		"esbenp.prettier-vscode",
-		"openai.chatgpt"
-	]
+  "recommendations": [
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "vitest.explorer",
+    "openai.chatgpt"
+  ]
 }
