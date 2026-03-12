@@ -9,7 +9,7 @@ type AppPageConfig<Route extends AppRoutes = AppRoutes> = {
   default:
     | React.ComponentType<{ params: Promise<ParamMap[Route]> } & any>
     | ((
-        props: { params: Promise<ParamMap[Route]> } & any
+        props: { params: Promise<ParamMap[Route]> } & any,
       ) =>
         | React.ReactNode
         | Promise<React.ReactNode>
@@ -21,11 +21,11 @@ type AppPageConfig<Route extends AppRoutes = AppRoutes> = {
   }) => Promise<any[]> | any[];
   generateMetadata?: (
     props: { params: Promise<ParamMap[Route]> } & any,
-    parent: ResolvingMetadata
+    parent: ResolvingMetadata,
   ) => Promise<any> | any;
   generateViewport?: (
     props: { params: Promise<ParamMap[Route]> } & any,
-    parent: ResolvingViewport
+    parent: ResolvingViewport,
   ) => Promise<any> | any;
   metadata?: any;
   viewport?: any;
@@ -35,7 +35,7 @@ type LayoutConfig<Route extends LayoutRoutes = LayoutRoutes> = {
   default:
     | React.ComponentType<LayoutProps<Route>>
     | ((
-        props: LayoutProps<Route>
+        props: LayoutProps<Route>,
       ) =>
         | React.ReactNode
         | Promise<React.ReactNode>
@@ -47,11 +47,11 @@ type LayoutConfig<Route extends LayoutRoutes = LayoutRoutes> = {
   }) => Promise<any[]> | any[];
   generateMetadata?: (
     props: { params: Promise<ParamMap[Route]> } & any,
-    parent: ResolvingMetadata
+    parent: ResolvingMetadata,
   ) => Promise<any> | any;
   generateViewport?: (
     props: { params: Promise<ParamMap[Route]> } & any,
-    parent: ResolvingViewport
+    parent: ResolvingViewport,
   ) => Promise<any> | any;
   metadata?: any;
   viewport?: any;
