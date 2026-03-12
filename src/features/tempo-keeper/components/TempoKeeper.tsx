@@ -53,7 +53,7 @@ export default function TempoKeeper() {
   const tempoProgress = Math.min(
     Math.max(
       (tempoBpm - TEMPO_COLOR_MIN_BPM) /
-      (TEMPO_COLOR_MAX_BPM - TEMPO_COLOR_MIN_BPM),
+        (TEMPO_COLOR_MAX_BPM - TEMPO_COLOR_MIN_BPM),
       0,
     ),
     1,
@@ -69,12 +69,13 @@ export default function TempoKeeper() {
     return (
       <div
         key={index}
-        className={`h-10 w-10 rounded-full ${isActive
-          ? isDownbeat
-            ? "bg-red-500"
-            : "bg-green-500"
-          : "bg-gray-500"
-          }`}
+        className={`h-10 w-10 rounded-full ${
+          isActive
+            ? isDownbeat
+              ? "bg-red-500"
+              : "bg-green-500"
+            : "bg-gray-500"
+        }`}
       />
     );
   });
@@ -160,10 +161,11 @@ export default function TempoKeeper() {
             <button
               type="button"
               onClick={togglePlayback}
-              className={`rounded-full border px-4.5 py-1 text-xl ${isPlaybackRunning
-                ? "border-red-500 text-red-500"
-                : "border-green-500 text-green-500"
-                }`}
+              className={`rounded-full border px-4.5 py-1 text-xl ${
+                isPlaybackRunning
+                  ? "border-red-500 text-red-500"
+                  : "border-green-500 text-green-500"
+              }`}
             >
               {isPlaybackRunning ? "Stop" : "Start"}
             </button>
