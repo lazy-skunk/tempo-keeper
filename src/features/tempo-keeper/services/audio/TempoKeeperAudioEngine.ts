@@ -1,4 +1,4 @@
-import { DOWNBEAT_INDEX } from "../constants";
+import { DOWNBEAT_INDEX } from "@/features/tempo-keeper/constants";
 
 const CLICK_FREQUENCY_HZ = 1000;
 const DOWNBEAT_CLICK_ATTACK_GAIN = 1.0;

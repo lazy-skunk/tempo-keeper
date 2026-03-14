@@ -1,13 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import {
   BEATS_PER_BAR_OPTIONS,
   DOWNBEAT_INDEX,
   MAX_BPM,
   MIN_BPM,
-} from "../constants";
-import { useTempoKeeper } from "../hooks/useTempoKeeper";
+} from "@/features/tempo-keeper/constants";
+import { useTempoKeeper } from "@/features/tempo-keeper/hooks/useTempoKeeper";
 
 const TEMPO_COLOR_MIN_BPM = 60;
 const TEMPO_COLOR_MAX_BPM = 210;
@@ -16,39 +15,20 @@ const HSL_GREEN_HUE = 120;
 
 export default function TempoKeeper() {
   const {
-    tempoBpm,
-    beatsPerBar,
-    isPlaybackRunning,
-    activeBeatIndex,
-    setTempoBpm,
+    playbackState,
+    tempoInputValue,
+    errorMessage,
+    canStart,
+    canStop,
     setBeatsPerBar,
-    togglePlayback,
+    setTempoBpm,
+    setTempoInputValue,
+    commitTempoInput,
+    startPlayback,
+    stopPlayback,
   } = useTempoKeeper();
-  const [tempoInputValue, setTempoInputValue] = useState(String(tempoBpm));
-
-  useEffect(() => {
-    setTempoInputValue(String(tempoBpm));
-  }, [tempoBpm]);
-
-  const commitTempoInputValue = () => {
-    if (tempoInputValue === "") {
-      setTempoInputValue(String(tempoBpm));
-      return;
-    }
-
-    const candidateTempoBpm = Number(tempoInputValue);
-    if (Number.isNaN(candidateTempoBpm)) {
-      setTempoInputValue(String(tempoBpm));
-      return;
-    }
-
-    const clampedTempoBpm = Math.min(
-      MAX_BPM,
-      Math.max(MIN_BPM, candidateTempoBpm),
-    );
-    setTempoBpm(clampedTempoBpm);
-    setTempoInputValue(String(clampedTempoBpm));
-  };
+  const { tempoBpm, beatsPerBar, isPlaybackRunning, activeBeatIndex } =
+    playbackState;
 
   const tempoProgress = Math.min(
     Math.max(
@@ -93,27 +73,9 @@ export default function TempoKeeper() {
               max={MAX_BPM}
               value={tempoInputValue}
               onChange={(event) => {
-                const nextValue = event.target.value;
-                setTempoInputValue(nextValue);
-                if (nextValue === "") {
-                  return;
-                }
-
-                const candidateTempoBpm = Number(nextValue);
-                if (Number.isNaN(candidateTempoBpm)) {
-                  return;
-                }
-
-                if (
-                  candidateTempoBpm < MIN_BPM ||
-                  candidateTempoBpm > MAX_BPM
-                ) {
-                  return;
-                }
-
-                setTempoBpm(candidateTempoBpm);
+                setTempoInputValue(event.target.value);
               }}
-              onBlur={commitTempoInputValue}
+              onBlur={commitTempoInput}
               onKeyDown={(event) => {
                 if (event.key === "Enter") {
                   event.currentTarget.blur();
@@ -157,18 +119,33 @@ export default function TempoKeeper() {
             {beatIndicators}
           </div>
 
+          {errorMessage && (
+            <div className="max-w-md rounded-2xl bg-rose-100 px-4 py-3 text-sm font-medium text-rose-700">
+              {errorMessage}
+            </div>
+          )}
+
           <div className="flex items-center justify-center">
-            <button
-              type="button"
-              onClick={togglePlayback}
-              className={`rounded-full border px-4.5 py-1 text-xl ${
-                isPlaybackRunning
-                  ? "border-red-500 text-red-500"
-                  : "border-green-500 text-green-500"
-              }`}
-            >
-              {isPlaybackRunning ? "Stop" : "Start"}
-            </button>
+            {canStart && (
+              <button
+                type="button"
+                onClick={() => {
+                  void startPlayback();
+                }}
+                className="rounded-full border border-green-500 px-4.5 py-1 text-xl text-green-500"
+              >
+                Start
+              </button>
+            )}
+            {canStop && (
+              <button
+                type="button"
+                onClick={stopPlayback}
+                className="rounded-full border border-red-500 px-4.5 py-1 text-xl text-red-500"
+              >
+                Stop
+              </button>
+            )}
           </div>
         </div>
       </div>

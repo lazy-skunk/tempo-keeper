@@ -13,6 +13,7 @@ const eslintConfig = defineConfig([
     ".next/**",
     "out/**",
     "build/**",
+    "coverage/**",
     "next-env.d.ts",
     "src/types/cache-life.d.ts",
     "src/types/routes.d.ts",

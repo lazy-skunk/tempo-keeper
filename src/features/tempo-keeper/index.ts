@@ -1,1 +1,1 @@
-export { default as TempoKeeper } from "./components/TempoKeeper";
+export { default as TempoKeeper } from "@/features/tempo-keeper/components/TempoKeeper";

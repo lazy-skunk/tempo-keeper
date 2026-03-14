@@ -2,14 +2,21 @@ import {
   DEFAULT_BEATS_PER_BAR,
   DEFAULT_BPM,
   DOWNBEAT_INDEX,
-} from "../constants";
-import { TempoKeeperAudioEngine } from "../audio/TempoKeeperAudioEngine";
-import { resolveTargetPerformanceTimeMilliseconds } from "../audio/resolveTargetPerformanceTimeMilliseconds";
+} from "@/features/tempo-keeper/constants";
+
+export type TempoKeeperBeatSchedulerClock = {
+  prepare: () => Promise<number | null>;
+  getCurrentTimeSeconds: () => number | null;
+  getTargetPerformanceTimeMilliseconds: (
+    playbackTimeSeconds: number,
+  ) => number | null;
+};
 
 type TempoKeeperBeatSchedulerOptions = {
-  audioEngine: TempoKeeperAudioEngine;
+  clock: TempoKeeperBeatSchedulerClock;
   lookaheadMilliseconds?: number;
   scheduleAheadSeconds?: number;
+  onClockUnavailable?: () => void;
   onBeatScheduled?: (
     beatIndex: number,
     playbackTimeSeconds: number,
@@ -22,10 +29,13 @@ const SCHEDULE_AHEAD_SECONDS = 0.1;
 
 export class TempoKeeperBeatScheduler {
   private schedulerIntervalId: ReturnType<typeof setInterval> | null = null;
+  private isPreparingClock = false;
+  private prepareRequestId = 0;
 
-  private readonly audioEngine: TempoKeeperAudioEngine;
+  private readonly clock: TempoKeeperBeatSchedulerClock;
   private readonly lookaheadMilliseconds: number;
   private readonly scheduleAheadSeconds: number;
+  private readonly onClockUnavailable?: () => void;
   private readonly onBeatScheduled?: (
     beatIndex: number,
     playbackTimeSeconds: number,
@@ -38,11 +48,12 @@ export class TempoKeeperBeatScheduler {
   private nextBeatTimeSeconds = 0;
 
   constructor(options: TempoKeeperBeatSchedulerOptions) {
-    this.audioEngine = options.audioEngine;
+    this.clock = options.clock;
     this.lookaheadMilliseconds =
       options.lookaheadMilliseconds ?? LOOKAHEAD_MILLISECONDS;
     this.scheduleAheadSeconds =
       options.scheduleAheadSeconds ?? SCHEDULE_AHEAD_SECONDS;
+    this.onClockUnavailable = options.onClockUnavailable;
     this.onBeatScheduled = options.onBeatScheduled;
   }
 
@@ -60,33 +71,48 @@ export class TempoKeeperBeatScheduler {
   }
 
   public async start() {
-    if (this.getIsRunning()) {
+    if (this.getIsRunning() || this.isPreparingClock) {
+      return this.getIsRunning();
+    }
+
+    this.isPreparingClock = true;
+    const requestId = ++this.prepareRequestId;
+
+    try {
+      const currentTimeSeconds = await this.clock.prepare();
+      if (currentTimeSeconds === null) {
+        return false;
+      }
+
+      if (requestId !== this.prepareRequestId || this.getIsRunning()) {
+        return false;
+      }
+
+      this.currentBeatIndex = DOWNBEAT_INDEX;
+      this.nextBeatTimeSeconds = currentTimeSeconds;
+      this.schedulerIntervalId = setInterval(
+        this.schedulePendingBeats,
+        this.lookaheadMilliseconds,
+      );
+      this.schedulePendingBeats();
+
       return true;
+    } finally {
+      this.isPreparingClock = false;
     }
-
-    const audioContext = await this.audioEngine.prepare();
-    if (!audioContext) {
-      return false;
-    }
-
-    this.currentBeatIndex = DOWNBEAT_INDEX;
-    this.nextBeatTimeSeconds = audioContext.currentTime;
-    this.schedulerIntervalId = setInterval(
-      this.schedulePendingBeats,
-      this.lookaheadMilliseconds,
-    );
-
-    return true;
   }
 
   public stop() {
+    this.prepareRequestId += 1;
+    this.isPreparingClock = false;
+
     if (this.schedulerIntervalId) {
       clearInterval(this.schedulerIntervalId);
       this.schedulerIntervalId = null;
     }
 
-    this.audioEngine.stop();
     this.currentBeatIndex = DOWNBEAT_INDEX;
+    this.nextBeatTimeSeconds = 0;
   }
 
   public dispose() {
@@ -94,28 +120,32 @@ export class TempoKeeperBeatScheduler {
   }
 
   private readonly schedulePendingBeats = () => {
-    const audioContext = this.audioEngine.getAudioContext();
-    if (!audioContext) {
+    const currentTimeSeconds = this.clock.getCurrentTimeSeconds();
+    if (currentTimeSeconds === null) {
+      this.stop();
+      this.onClockUnavailable?.();
       return;
     }
 
     while (
       this.nextBeatTimeSeconds <
-      audioContext.currentTime + this.scheduleAheadSeconds
+      currentTimeSeconds + this.scheduleAheadSeconds
     ) {
       const beatIndexToSchedule = this.currentBeatIndex;
+      const targetPerformanceTimeMilliseconds =
+        this.clock.getTargetPerformanceTimeMilliseconds(
+          this.nextBeatTimeSeconds,
+        );
+      if (targetPerformanceTimeMilliseconds === null) {
+        this.stop();
+        this.onClockUnavailable?.();
+        return;
+      }
 
-      this.audioEngine.scheduleClickSound(
-        this.nextBeatTimeSeconds,
-        beatIndexToSchedule,
-      );
       this.onBeatScheduled?.(
         beatIndexToSchedule,
         this.nextBeatTimeSeconds,
-        resolveTargetPerformanceTimeMilliseconds(
-          audioContext,
-          this.nextBeatTimeSeconds,
-        ),
+        targetPerformanceTimeMilliseconds,
       );
 
       const secondsPerBeat = 60 / this.tempoBpm;

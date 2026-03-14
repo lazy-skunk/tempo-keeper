@@ -2,8 +2,6 @@ type TempoKeeperVisualSchedulerOptions = {
   onBeatActivated: (beatIndex: number) => void;
 };
 
-const FRAME_ALIGNMENT_OFFSET_MILLISECONDS = 8;
-
 export class TempoKeeperVisualScheduler {
   private scheduledBeatTimeoutIds = new Set<number>();
   private scheduledBeatAnimationFrameIds = new Set<number>();
@@ -45,9 +43,7 @@ export class TempoKeeperVisualScheduler {
 
     const delayMilliseconds = Math.max(
       0,
-      targetPerformanceTimeMilliseconds -
-        performance.now() -
-        FRAME_ALIGNMENT_OFFSET_MILLISECONDS,
+      targetPerformanceTimeMilliseconds - performance.now(),
     );
     timeoutId = window.setTimeout(() => {
       this.scheduledBeatTimeoutIds.delete(timeoutId);
