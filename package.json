@@ -6,11 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint",
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
-    "test": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "lint": "vp lint",
+    "format": "vp fmt .",
+    "format:check": "vp fmt --check .",
+    "test": "vp test run",
+    "test:coverage": "vp test run --coverage",
+    "prepare": "vp config"
   },
   "dependencies": {
     "next": "^15.5.12",
@@ -23,13 +24,17 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitest/coverage-v8": "^4.0.18",
-    "eslint": "^9",
     "eslint-config-next": "16.1.1",
     "eslint-config-prettier": "^10.1.8",
     "jsdom": "^28.1.0",
-    "prettier": "^3.8.1",
     "tailwindcss": "^4",
     "typescript": "^5",
-    "vitest": "^4.0.18"
+    "vitest": "npm:@voidzero-dev/vite-plus-test@latest",
+    "vite-plus": "latest"
+  },
+  "packageManager": "npm@11.11.1",
+  "overrides": {
+    "vite": "npm:@voidzero-dev/vite-plus-core@latest",
+    "vitest": "npm:@voidzero-dev/vite-plus-test@latest"
   }
 }
