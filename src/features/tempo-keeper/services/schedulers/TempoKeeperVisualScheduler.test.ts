@@ -1,6 +1,5 @@
 // @vitest-environment jsdom
 
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { TempoKeeperVisualScheduler } from "@/features/tempo-keeper/services/schedulers/TempoKeeperVisualScheduler";
 
 describe("TempoKeeperVisualScheduler", () => {

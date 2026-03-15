@@ -1,4 +1,3 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { TempoKeeperBeatScheduler } from "@/features/tempo-keeper/services/schedulers/TempoKeeperBeatScheduler";
 
 describe("TempoKeeperBeatScheduler", () => {
