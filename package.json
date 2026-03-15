@@ -3,12 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "vp dev",
-    "build": "vp build",
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
     "check": "vp check",
     "test": "vp test run",
     "test:coverage": "vp test run --coverage",
-    "preview": "vp preview"
+    "prepare": "vp config"
   },
   "dependencies": {
     "next": "^15.5.12",
