@@ -25,6 +25,7 @@
     "jsdom": "^28.1.0",
     "tailwindcss": "^4",
     "typescript": "^5",
+    "vitest": "npm:@voidzero-dev/vite-plus-test@latest",
     "vite-plus": "latest"
   },
   "packageManager": "npm@11.11.1",
