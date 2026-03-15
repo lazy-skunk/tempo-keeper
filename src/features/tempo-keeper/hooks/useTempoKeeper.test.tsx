@@ -1,8 +1,5 @@
 // @vitest-environment jsdom
 
-import React, { act } from "react";
-import { createRoot, type Root } from "react-dom/client";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   DEFAULT_BEATS_PER_BAR,
   DEFAULT_BPM,
@@ -10,6 +7,8 @@ import {
   MAX_BPM,
 } from "@/features/tempo-keeper/constants";
 import type { TempoKeeperBeatSchedulerClock } from "@/features/tempo-keeper/services/schedulers/TempoKeeperBeatScheduler";
+import React, { act } from "react";
+import { createRoot, type Root } from "react-dom/client";
 
 type SchedulerOptions = {
   clock: TempoKeeperBeatSchedulerClock;

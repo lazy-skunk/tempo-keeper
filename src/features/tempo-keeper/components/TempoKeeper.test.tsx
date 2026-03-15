@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 
+import TempoKeeper from "@/features/tempo-keeper/components/TempoKeeper";
 import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const startPlayback = vi.fn(async () => true);
 const stopPlayback = vi.fn();
@@ -12,8 +12,6 @@ const useTempoKeeperMock = vi.fn();
 vi.mock("../hooks/useTempoKeeper", () => ({
   useTempoKeeper: (...args: unknown[]) => useTempoKeeperMock(...args),
 }));
-
-import TempoKeeper from "@/features/tempo-keeper/components/TempoKeeper";
 
 describe("TempoKeeper", () => {
   let container: HTMLDivElement;
