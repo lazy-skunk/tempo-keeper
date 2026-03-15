@@ -6,8 +6,8 @@ import {
   MIN_BEATS_PER_BAR,
   MIN_BPM,
 } from "@/features/tempo-keeper/constants";
-import { TempoKeeperAudioEngine } from "@/features/tempo-keeper/services/audio/TempoKeeperAudioEngine";
 import { resolveTargetPerformanceTimeMilliseconds } from "@/features/tempo-keeper/services/audio/resolveTargetPerformanceTimeMilliseconds";
+import { TempoKeeperAudioEngine } from "@/features/tempo-keeper/services/audio/TempoKeeperAudioEngine";
 import { TempoKeeperBeatScheduler } from "@/features/tempo-keeper/services/schedulers/TempoKeeperBeatScheduler";
 import { TempoKeeperVisualScheduler } from "@/features/tempo-keeper/services/schedulers/TempoKeeperVisualScheduler";
 import { useCallback, useEffect, useRef, useState } from "react";
