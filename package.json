@@ -6,10 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "check": "vp check",
-    "test": "vp test run",
-    "test:coverage": "vp test run --coverage",
-    "prepare": "vp config"
+    "test": "jest --coverage",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "dependencies": {
     "next": "^15.5.12",
@@ -17,20 +17,19 @@
     "react-dom": "19.1.0"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
+    "@types/jest": "^30.0.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@vitest/coverage-v8": "^4.0.18",
-    "jsdom": "^28.1.0",
+    "eslint": "^9",
+    "eslint-config-next": "15.5.0",
+    "eslint-config-prettier": "^10.1.8",
+    "jest": "^30.3.0",
+    "jest-environment-jsdom": "^30.3.0",
+    "prettier": "^3.8.3",
     "tailwindcss": "^4",
-    "typescript": "^5",
-    "vitest": "npm:@voidzero-dev/vite-plus-test@latest",
-    "vite-plus": "latest"
-  },
-  "packageManager": "npm@11.11.1",
-  "overrides": {
-    "vite": "npm:@voidzero-dev/vite-plus-core@latest",
-    "vitest": "npm:@voidzero-dev/vite-plus-test@latest"
+    "typescript": "^5"
   }
 }

@@ -1,15 +1,13 @@
-// @vitest-environment jsdom
-
 import TempoKeeper from "@/features/tempo-keeper/components/TempoKeeper";
 import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
-const startPlayback = vi.fn(async () => true);
-const stopPlayback = vi.fn();
+const startPlayback = jest.fn(async () => true);
+const stopPlayback = jest.fn();
 
-const useTempoKeeperMock = vi.fn();
+const useTempoKeeperMock = jest.fn();
 
-vi.mock("../hooks/useTempoKeeper", () => ({
+jest.mock("@/features/tempo-keeper/hooks/useTempoKeeper", () => ({
   useTempoKeeper: (...args: unknown[]) => useTempoKeeperMock(...args),
 }));
 
@@ -46,10 +44,10 @@ describe("TempoKeeper", () => {
       errorMessage: null,
       canStart: true,
       canStop: false,
-      setTempoBpm: vi.fn(),
-      setTempoInputValue: vi.fn(),
-      setBeatsPerBar: vi.fn(),
-      commitTempoInput: vi.fn(),
+      setTempoBpm: jest.fn(),
+      setTempoInputValue: jest.fn(),
+      setBeatsPerBar: jest.fn(),
+      commitTempoInput: jest.fn(),
       startPlayback,
       stopPlayback,
     });
@@ -75,10 +73,10 @@ describe("TempoKeeper", () => {
       errorMessage: "Playback stopped unexpectedly. Please start again.",
       canStart: false,
       canStop: true,
-      setTempoBpm: vi.fn(),
-      setTempoInputValue: vi.fn(),
-      setBeatsPerBar: vi.fn(),
-      commitTempoInput: vi.fn(),
+      setTempoBpm: jest.fn(),
+      setTempoInputValue: jest.fn(),
+      setBeatsPerBar: jest.fn(),
+      commitTempoInput: jest.fn(),
       startPlayback,
       stopPlayback,
     });

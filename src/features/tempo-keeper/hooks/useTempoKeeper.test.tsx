@@ -1,5 +1,3 @@
-// @vitest-environment jsdom
-
 import {
   DEFAULT_BEATS_PER_BAR,
   DEFAULT_BPM,
@@ -20,107 +18,102 @@ type SchedulerOptions = {
   ) => void;
 };
 
-const testDoubles = vi.hoisted(() => {
-  const schedulerInstances: MockScheduler[] = [];
-  const audioEngineInstances: MockAudioEngine[] = [];
-  const visualSchedulerInstances: MockVisualScheduler[] = [];
-  const sharedAudioContext = {
-    currentTime: 100,
-    getOutputTimestamp: () => ({
-      contextTime: 100,
-      performanceTime: 100_000,
-    }),
-  };
+const schedulerInstances: MockScheduler[] = [];
+const audioEngineInstances: MockAudioEngine[] = [];
+const visualSchedulerInstances: MockVisualScheduler[] = [];
+const sharedAudioContext = {
+  currentTime: 100,
+  getOutputTimestamp: () => ({
+    contextTime: 100,
+    performanceTime: 100_000,
+  }),
+};
 
-  class MockScheduler {
-    public readonly start = vi.fn(async () => true);
-    public readonly stop = vi.fn();
-    public readonly dispose = vi.fn();
-    public readonly setTempoBpm = vi.fn();
-    public readonly setBeatsPerBar = vi.fn();
+class MockScheduler {
+  public readonly start = jest.fn(async () => true);
+  public readonly stop = jest.fn();
+  public readonly dispose = jest.fn();
+  public readonly setTempoBpm = jest.fn();
+  public readonly setBeatsPerBar = jest.fn();
 
-    public constructor(public readonly options: SchedulerOptions) {
-      schedulerInstances.push(this);
-    }
+  public constructor(public readonly options: SchedulerOptions) {
+    schedulerInstances.push(this);
   }
+}
 
-  class MockAudioEngine {
-    public readonly prepare = vi.fn(async () => sharedAudioContext);
-    public readonly getAudioContext = vi.fn(() => sharedAudioContext);
-    public readonly stop = vi.fn();
-    public readonly dispose = vi.fn(async () => {});
-    public readonly scheduleClickSound = vi.fn();
+class MockAudioEngine {
+  public readonly prepare = jest.fn(async () => sharedAudioContext);
+  public readonly getAudioContext = jest.fn(() => sharedAudioContext);
+  public readonly stop = jest.fn();
+  public readonly dispose = jest.fn(async () => {});
+  public readonly scheduleClickSound = jest.fn();
 
-    public constructor() {
-      audioEngineInstances.push(this);
-    }
+  public constructor() {
+    audioEngineInstances.push(this);
   }
+}
 
-  class MockVisualScheduler {
-    public readonly scheduleBeat = vi.fn();
-    public readonly clear = vi.fn();
+class MockVisualScheduler {
+  public readonly scheduleBeat = jest.fn();
+  public readonly clear = jest.fn();
 
-    public constructor() {
-      visualSchedulerInstances.push(this);
-    }
+  public constructor() {
+    visualSchedulerInstances.push(this);
   }
+}
 
-  return {
-    schedulerInstances,
-    audioEngineInstances,
-    visualSchedulerInstances,
-    sharedAudioContext,
-    MockScheduler,
-    MockAudioEngine,
-    MockVisualScheduler,
-  };
-});
-
-vi.mock(
+jest.mock(
   "@/features/tempo-keeper/services/schedulers/TempoKeeperBeatScheduler",
-  async () => {
-    const actual = await vi.importActual<
-      typeof import("@/features/tempo-keeper/services/schedulers/TempoKeeperBeatScheduler")
-    >("@/features/tempo-keeper/services/schedulers/TempoKeeperBeatScheduler");
+  () => {
+    const actual = jest.requireActual(
+      "@/features/tempo-keeper/services/schedulers/TempoKeeperBeatScheduler",
+    ) as typeof import("@/features/tempo-keeper/services/schedulers/TempoKeeperBeatScheduler");
 
     return {
       ...actual,
-      TempoKeeperBeatScheduler: testDoubles.MockScheduler,
+      TempoKeeperBeatScheduler: MockScheduler,
     };
   },
 );
 
-vi.mock(
+jest.mock(
   "@/features/tempo-keeper/services/audio/TempoKeeperAudioEngine",
   () => ({
-    TempoKeeperAudioEngine: testDoubles.MockAudioEngine,
+    TempoKeeperAudioEngine: MockAudioEngine,
   }),
 );
 
-vi.mock(
+jest.mock(
   "@/features/tempo-keeper/services/schedulers/TempoKeeperVisualScheduler",
   () => ({
-    TempoKeeperVisualScheduler: testDoubles.MockVisualScheduler,
+    TempoKeeperVisualScheduler: MockVisualScheduler,
   }),
 );
 
-import { useTempoKeeper } from "@/features/tempo-keeper/hooks/useTempoKeeper";
+let useTempoKeeper: typeof import("@/features/tempo-keeper/hooks/useTempoKeeper").useTempoKeeper;
 
-type HookResult = ReturnType<typeof useTempoKeeper>;
+type HookResult = ReturnType<
+  typeof import("@/features/tempo-keeper/hooks/useTempoKeeper").useTempoKeeper
+>;
 
 describe("useTempoKeeper", () => {
   let container: HTMLDivElement;
   let root: Root;
   let hookResult!: HookResult;
 
+  beforeAll(async () => {
+    ({ useTempoKeeper } =
+      await import("@/features/tempo-keeper/hooks/useTempoKeeper"));
+  });
+
   beforeEach(() => {
     globalThis.IS_REACT_ACT_ENVIRONMENT = true;
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
-    testDoubles.schedulerInstances.length = 0;
-    testDoubles.audioEngineInstances.length = 0;
-    testDoubles.visualSchedulerInstances.length = 0;
+    schedulerInstances.length = 0;
+    audioEngineInstances.length = 0;
+    visualSchedulerInstances.length = 0;
   });
 
   afterEach(async () => {
@@ -128,7 +121,8 @@ describe("useTempoKeeper", () => {
       root.unmount();
     });
     container.remove();
-    vi.clearAllMocks();
+    jest.clearAllMocks();
+    jest.restoreAllMocks();
   });
 
   const renderHookHarness = async () => {
@@ -169,8 +163,8 @@ describe("useTempoKeeper", () => {
 
   it("delegates start, stop, and parameter updates", async () => {
     await renderHookHarness();
-    const scheduler = testDoubles.schedulerInstances[0];
-    const audioEngine = testDoubles.audioEngineInstances[0];
+    const scheduler = schedulerInstances[0];
+    const audioEngine = audioEngineInstances[0];
 
     scheduler.setTempoBpm.mockClear();
     scheduler.setBeatsPerBar.mockClear();
@@ -253,9 +247,9 @@ describe("useTempoKeeper", () => {
 
   it("schedules audio and visual updates for scheduled beats", async () => {
     await renderHookHarness();
-    const scheduler = testDoubles.schedulerInstances[0];
-    const audioEngine = testDoubles.audioEngineInstances[0];
-    const visualScheduler = testDoubles.visualSchedulerInstances[0];
+    const scheduler = schedulerInstances[0];
+    const audioEngine = audioEngineInstances[0];
+    const visualScheduler = visualSchedulerInstances[0];
 
     act(() => {
       scheduler.options.onBeatScheduled?.(2, 101.5, 101_500);
@@ -266,10 +260,12 @@ describe("useTempoKeeper", () => {
   });
 
   it("shows an error when the active clock becomes unavailable", async () => {
+    const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
+
     await renderHookHarness();
-    const scheduler = testDoubles.schedulerInstances[0];
-    const audioEngine = testDoubles.audioEngineInstances[0];
-    const visualScheduler = testDoubles.visualSchedulerInstances[0];
+    const scheduler = schedulerInstances[0];
+    const audioEngine = audioEngineInstances[0];
+    const visualScheduler = visualSchedulerInstances[0];
 
     act(() => {
       scheduler.options.onClockUnavailable?.();
@@ -280,11 +276,16 @@ describe("useTempoKeeper", () => {
     expect(hookResult.errorMessage).toBe(
       "Playback stopped unexpectedly. Please start again.",
     );
+    expect(warnSpy).toHaveBeenCalledWith(
+      "useTempoKeeper: active clock became unavailable, playback stopped.",
+    );
   });
 
   it("clears the error when playback is stopped manually", async () => {
+    const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
+
     await renderHookHarness();
-    const scheduler = testDoubles.schedulerInstances[0];
+    const scheduler = schedulerInstances[0];
 
     act(() => {
       scheduler.options.onClockUnavailable?.();
@@ -299,5 +300,8 @@ describe("useTempoKeeper", () => {
     });
 
     expect(hookResult.errorMessage).toBeNull();
+    expect(warnSpy).toHaveBeenCalledWith(
+      "useTempoKeeper: active clock became unavailable, playback stopped.",
+    );
   });
 });

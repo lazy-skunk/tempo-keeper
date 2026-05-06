@@ -11,5 +11,6 @@ services:
       - "3000:3000"
     environment:
       - WATCHPACK_POLLING=true
+    command: npm run dev -- --hostname 0.0.0.0
     stdin_open: true
     tty: true

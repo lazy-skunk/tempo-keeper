@@ -15,7 +15,6 @@ npm run format:check
 
 # Test
 npm test
-npm run test:coverage
 ```
 
 ## Docker
@@ -25,4 +24,10 @@ docker-compose build --no-cache
 docker-compose up --build -d
 docker-compose stop
 docker-compose down --rmi all --volumes
+```
+
+## Git
+
+```bash
+git config core.hooksPath .githooks
 ```
