@@ -7,6 +7,7 @@ services:
       - ./:/app
       - /app/node_modules
       - /app/.next
+      - ~/.gitconfig:/root/.gitconfig:ro
     ports:
       - "3000:3000"
     environment:
